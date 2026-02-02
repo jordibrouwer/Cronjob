@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Cron Job Code Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active { @apply bg-blue-500 text-white; }
+        .tab-inactive { @apply bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300; }
+        #canvas-heatmap { border: 1px solid #ccc; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+    <div class="container mx-auto p-4">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">🕐 Jordi's Advanced Cron Job Code Generator</h1>
+        </div>
+
+        <!-- Main Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <!-- Left Sidebar (Cron Inputs) -->
+            <div class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">Cron Fields</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Minute (0-59)</label>
+                        <input type="text" id="minute" value="*" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                        <select id="minute-preset" class="w-full mt-1 px-2 py-1 text-sm border rounded dark:bg-gray-700">
+                            <option value="*">Every minute (*)</option>
+                            <option value="0">At :00</option>
+                            <option value="*/5">Every 5 min (*/5)</option>
+                            <option value="*/15">Every 15 min (*/15)</option>
+                            <option value="*/30">Every 30 min (*/30)</option>
+                            <option value="0,30">At :00 and :30</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Hour (0-23)</label>
+                        <input type="text" id="hour" value="*" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                        <select id="hour-preset" class="w-full mt-1 px-2 py-1 text-sm border rounded dark:bg-gray-700">
+                            <option value="*">Every hour (*)</option>
+                            <option value="0">Midnight (0)</option>
+                            <option value="9">9 AM</option>
+                            <option value="*/2">Every 2 hrs (*/2)</option>
+                            <option value="9-17">Work hours (9-17)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Day of Month (1-31)</label>
+                        <input type="text" id="dom" value="*" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                        <select id="dom-preset" class="w-full mt-1 px-2 py-1 text-sm border rounded dark:bg-gray-700">
+                            <option value="*">Every day (*)</option>
+                            <option value="1">First day (1)</option>
+                            <option value="15">Mid-month (15)</option>
+                            <option value="1,15">1st & 15th</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Month (1-12)</label>
+                        <input type="text" id="month" value="*" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                        <select id="month-preset" class="w-full mt-1 px-2 py-1 text-sm border rounded dark:bg-gray-700">
+                            <option value="*">Every month (*)</option>
+                            <option value="1">January</option>
+                            <option value="1-6">Jan-Jun (1-6)</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Day of Week (0-6, 0=Sun)</label>
+                        <input type="text" id="dow" value="*" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                        <select id="dow-preset" class="w-full mt-1 px-2 py-1 text-sm border rounded dark:bg-gray-700">
+                            <option value="*">Every day (*)</option>
+                            <option value="1-5">Weekdays (1-5)</option>
+                            <option value="0,6">Weekends (0,6)</option>
+                            <option value="1">Monday</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Natural Language Input -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium mb-1">Natural Language</label>
+                    <input type="text" id="natural-input" placeholder="elke werkdag om 9:00" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                    <button id="parse-natural" class="w-full mt-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Parse</button>
+                </div>
+
+                <!-- Timezone Selector -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium mb-1">Timezone</label>
+                    <select id="timezone" class="w-full px-2 py-1 border rounded dark:bg-gray-700">
+                        <option value="UTC">UTC</option>
+                        <option value="Europe/Amsterdam" selected>Europe/Amsterdam</option>
+                        <option value="America/New_York">America/New_York</option>
+                        <option value="America/Los_Angeles">America/Los_Angeles</option>
+                        <option value="Asia/Tokyo">Asia/Tokyo</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="lg:col-span-4 space-y-4">
+                <!-- Validation & Description -->
+                <div id="validation" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold mb-2">Cron Expression</h3>
+                            <code id="cron-expr" class="text-2xl font-mono bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded block">* * * * *</code>
+                        </div>
+                        <div id="valid-badge" class="text-6xl">✅</div>
+                    </div>
+                    <p id="human-text" class="mt-4 text-lg text-gray-700 dark:text-gray-300">Every minute</p>
+                    <p id="error-text" class="mt-2 text-sm text-red-600 hidden"></p>
+                </div>
+
+                <!-- Next Runs -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-bold mb-3">Next 50 Scheduled Runs</h3>
+                    <div id="next-runs" class="max-h-64 overflow-y-auto text-sm space-y-1"></div>
+                </div>
+
+                <!-- Heatmap Calendar -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-bold mb-3">Run Frequency Heatmap (365 days)</h3>
+                    <canvas id="canvas-heatmap" width="800" height="120" class="w-full"></canvas>
+                </div>
+
+                <!-- Code Generator Tabs -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-bold mb-3">Code Generator</h3>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <button data-tab="bash" class="tab-btn px-4 py-2 rounded tab-active">Bash</button>
+                        <button data-tab="nodejs" class="tab-btn px-4 py-2 rounded tab-inactive">Node.js</button>
+                        <button data-tab="python" class="tab-btn px-4 py-2 rounded tab-inactive">Python</button>
+                        <button data-tab="java" class="tab-btn px-4 py-2 rounded tab-inactive">Java</button>
+                        <button data-tab="docker" class="tab-btn px-4 py-2 rounded tab-inactive">Docker/K8s</button>
+                    </div>
+
+                    <div class="relative">
+                        <pre id="code-output" class="bg-gray-100 dark:bg-gray-900 p-4 rounded overflow-x-auto text-sm"><code></code></pre>
+                        <button id="copy-code" class="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">Copy</button>
+                    </div>
+
+                    <div class="flex gap-2 mt-4">
+                        <button id="download-code" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Download</button>
+                        <button id="test-run" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">Test Run (Console)</button>
+                        <button id="save-favorite" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Save Favorite</button>
+                    </div>
+                </div>
+
+                <!-- Presets Library -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-bold mb-3">50+ Quick Presets</h3>
+                    <div id="presets-grid" class="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentTab = 'bash';
+        let currentTimezone = 'Europe/Amsterdam';
+        
+        // DOM Elements
+        const fields = {
+            minute: document.getElementById('minute'),
+            hour: document.getElementById('hour'),
+            dom: document.getElementById('dom'),
+            month: document.getElementById('month'),
+            dow: document.getElementById('dow')
+        };
+
+        // Preset definitions
+        const presets = [
+            { name: 'Every Minute', cron: '* * * * *', desc: 'Runs every minute' },
+            { name: 'Every 5 Minutes', cron: '*/5 * * * *', desc: 'Every 5 minutes' },
+            { name: 'Every Hour', cron: '0 * * * *', desc: 'At minute 0 of every hour' },
+            { name: 'Every Day Midnight', cron: '0 0 * * *', desc: 'Daily at midnight' },
+            { name: 'Every Day 9 AM', cron: '0 9 * * *', desc: 'Daily at 9:00 AM' },
+            { name: 'Weekdays 9 AM', cron: '0 9 * * 1-5', desc: 'Monday-Friday at 9 AM' },
+            { name: 'Weekend Backup', cron: '0 2 * * 0,6', desc: 'Saturday & Sunday at 2 AM' },
+            { name: 'Hourly Weekdays', cron: '0 * * * 1-5', desc: 'Every hour on weekdays' },
+            { name: 'First of Month', cron: '0 0 1 * *', desc: '1st day of each month at midnight' },
+            { name: 'Mid Month', cron: '0 12 15 * *', desc: '15th of month at noon' },
+            { name: 'Every Monday', cron: '0 9 * * 1', desc: 'Mondays at 9 AM' },
+            { name: 'Every Sunday', cron: '0 0 * * 0', desc: 'Sundays at midnight' },
+            { name: 'Bi-Weekly', cron: '0 0 1,15 * *', desc: '1st and 15th at midnight' },
+            { name: 'Quarterly', cron: '0 0 1 1,4,7,10 *', desc: 'Jan/Apr/Jul/Oct 1st' },
+            { name: 'Yearly', cron: '0 0 1 1 *', desc: 'January 1st at midnight' },
+            { name: 'Work Hours Start', cron: '0 9 * * 1-5', desc: 'Weekdays at 9 AM' },
+            { name: 'Work Hours End', cron: '0 17 * * 1-5', desc: 'Weekdays at 5 PM' },
+            { name: 'Lunch Time', cron: '0 12 * * 1-5', desc: 'Weekdays at noon' },
+            { name: 'Every 15 Min', cron: '*/15 * * * *', desc: 'Every 15 minutes' },
+            { name: 'Every 30 Min', cron: '*/30 * * * *', desc: 'Every 30 minutes' },
+            { name: 'Every 2 Hours', cron: '0 */2 * * *', desc: 'Every 2 hours' },
+            { name: 'Every 4 Hours', cron: '0 */4 * * *', desc: 'Every 4 hours' },
+            { name: 'Every 6 Hours', cron: '0 */6 * * *', desc: 'Every 6 hours' },
+            { name: 'Twice Daily', cron: '0 9,21 * * *', desc: '9 AM and 9 PM' },
+            { name: 'Night Backup', cron: '0 2 * * *', desc: 'Daily at 2 AM' },
+            { name: 'Weekend Night', cron: '0 3 * * 0,6', desc: 'Weekend at 3 AM' },
+            { name: 'Business Days', cron: '0 8 * * 1-5', desc: 'Weekdays at 8 AM' },
+            { name: 'Maintenance Window', cron: '0 2 * * 0', desc: 'Sundays at 2 AM' },
+            { name: 'Peak Hours', cron: '0 9-17 * * 1-5', desc: 'Weekdays 9 AM - 5 PM' },
+            { name: 'Off Hours', cron: '0 18-23,0-8 * * *', desc: '6 PM to 8 AM' },
+            { name: 'Summer Months', cron: '0 9 * 6-8 *', desc: 'Jun-Aug at 9 AM' },
+            { name: 'Winter Months', cron: '0 9 * 12,1,2 *', desc: 'Dec-Feb at 9 AM' },
+            { name: 'Quarter Start', cron: '0 0 1 1,4,7,10 *', desc: 'Quarterly on 1st' },
+            { name: 'Month End', cron: '0 23 28-31 * *', desc: 'Last days of month' },
+            { name: 'Every Other Day', cron: '0 9 */2 * *', desc: 'Every 2 days at 9 AM' },
+            { name: 'Week Start', cron: '0 8 * * 1', desc: 'Monday at 8 AM' },
+            { name: 'Week End', cron: '0 17 * * 5', desc: 'Friday at 5 PM' },
+            { name: 'Daily Reports', cron: '0 8 * * *', desc: 'Daily at 8 AM' },
+            { name: 'Weekly Reports', cron: '0 9 * * 1', desc: 'Monday at 9 AM' },
+            { name: 'Monthly Reports', cron: '0 9 1 * *', desc: '1st of month at 9 AM' },
+            { name: 'Hourly Check', cron: '0 * * * *', desc: 'Every hour' },
+            { name: 'Fast Poll', cron: '*/2 * * * *', desc: 'Every 2 minutes' },
+            { name: 'Med Poll', cron: '*/10 * * * *', desc: 'Every 10 minutes' },
+            { name: 'Slow Poll', cron: '0 */3 * * *', desc: 'Every 3 hours' },
+            { name: 'Test Job', cron: '*/5 * * * *', desc: 'Every 5 min for testing' },
+            { name: 'Debug Job', cron: '* * * * *', desc: 'Every minute for debug' },
+            { name: 'Production Backup', cron: '0 1 * * *', desc: 'Daily at 1 AM' },
+            { name: 'DB Cleanup', cron: '0 3 * * 0', desc: 'Sundays at 3 AM' },
+            { name: 'Cache Clear', cron: '0 4 * * *', desc: 'Daily at 4 AM' },
+            { name: 'Log Rotation', cron: '0 0 * * *', desc: 'Daily at midnight' },
+            { name: 'Health Check', cron: '*/5 * * * *', desc: 'Every 5 minutes' },
+            { name: 'Security Scan', cron: '0 2 * * 1', desc: 'Mondays at 2 AM' }
+        ];
+
+        // Cron Parser
+        function parseCron(minute, hour, dom, month, dow) {
+            try {
+                const parts = [minute, hour, dom, month, dow];
+                
+                // Basic validation
+                for (let part of parts) {
+                    if (!part || part.trim() === '') {
+                        return { valid: false, error: 'Empty field not allowed', humanText: '', nextRuns: [] };
+                    }
+                }
+
+                const cronStr = parts.join(' ');
+                const humanText = generateHumanText(minute, hour, dom, month, dow);
+                const nextRuns = calculateNextRuns(minute, hour, dom, month, dow, 50);
+                
+                return { valid: true, error: '', humanText, nextRuns, cronStr };
+            } catch (e) {
+                return { valid: false, error: e.message, humanText: '', nextRuns: [] };
+            }
+        }
+
+        function generateHumanText(minute, hour, dom, month, dow) {
+            let parts = [];
+            
+            // Minutes
+            if (minute === '*') parts.push('every minute');
+            else if (minute.startsWith('*/')) parts.push(`every ${minute.slice(2)} minutes`);
+            else if (minute.includes(',')) parts.push(`at minutes ${minute}`);
+            else if (minute.includes('-')) parts.push(`at minutes ${minute}`);
+            else parts.push(`at minute ${minute}`);
+            
+            // Hours
+            if (hour !== '*') {
+                if (hour.startsWith('*/')) parts.push(`every ${hour.slice(2)} hours`);
+                else if (hour.includes(',')) parts.push(`at hours ${hour}`);
+                else if (hour.includes('-')) parts.push(`between hours ${hour}`);
+                else parts.push(`at ${hour}:00`);
+            }
+            
+            // Day of month
+            if (dom !== '*') {
+                if (dom.includes(',')) parts.push(`on days ${dom} of month`);
+                else parts.push(`on day ${dom} of month`);
+            }
+            
+            // Month
+            if (month !== '*') {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                if (month.includes(',')) {
+                    const m = month.split(',').map(n => months[parseInt(n)-1]).join(', ');
+                    parts.push(`in ${m}`);
+                } else if (month.includes('-')) {
+                    const [start, end] = month.split('-').map(n => months[parseInt(n)-1]);
+                    parts.push(`from ${start} to ${end}`);
+                } else {
+                    parts.push(`in ${months[parseInt(month)-1]}`);
+                }
+            }
+            
+            // Day of week
+            if (dow !== '*') {
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                if (dow === '1-5') parts.push('on weekdays');
+                else if (dow === '0,6') parts.push('on weekends');
+                else if (dow.includes(',')) {
+                    const d = dow.split(',').map(n => days[parseInt(n)]).join(', ');
+                    parts.push(`on ${d}`);
+                } else if (dow.includes('-')) {
+                    const [start, end] = dow.split('-').map(n => days[parseInt(n)]);
+                    parts.push(`from ${start} to ${end}`);
+                } else {
+                    parts.push(`on ${days[parseInt(dow)]}`);
+                }
+            }
+            
+            return parts.join(', ').charAt(0).toUpperCase() + parts.join(', ').slice(1);
+        }
+
+        function expandCronField(field, min, max) {
+            const values = [];
+            
+            if (field === '*') {
+                for (let i = min; i <= max; i++) values.push(i);
+                return values;
+            }
+            
+            if (field.startsWith('*/')) {
+                const step = parseInt(field.slice(2));
+                for (let i = min; i <= max; i += step) values.push(i);
+                return values;
+            }
+            
+            if (field.includes(',')) {
+                return field.split(',').map(v => parseInt(v.trim()));
+            }
+            
+            if (field.includes('-')) {
+                const [start, end] = field.split('-').map(v => parseInt(v.trim()));
+                for (let i = start; i <= end; i++) values.push(i);
+                return values;
+            }
+            
+            return [parseInt(field)];
+        }
+
+        function calculateNextRuns(minute, hour, dom, month, dow, count) {
+            const runs = [];
+            const now = new Date();
+            const minutes = expandCronField(minute, 0, 59);
+            const hours = expandCronField(hour, 0, 23);
+            const doms = expandCronField(dom, 1, 31);
+            const months = expandCronField(month, 1, 12);
+            const dows = dow === '*' ? null : expandCronField(dow, 0, 6);
+            
+            let current = new Date(now);
+            current.setSeconds(0, 0);
+            
+            while (runs.length < count) {
+                current = new Date(current.getTime() + 60000); // Add 1 minute
+                
+                if (!minutes.includes(current.getMinutes())) continue;
+                if (!hours.includes(current.getHours())) continue;
+                if (!months.includes(current.getMonth() + 1)) continue;
+                if (!doms.includes(current.getDate())) continue;
+                if (dows && !dows.includes(current.getDay())) continue;
+                
+                runs.push(new Date(current));
+            }
+            
+            return runs;
+        }
+
+        // Code Generators
+        function generateCode(cronStr, language) {
+            const templates = {
+                bash: `# Add to crontab: crontab -e
+${cronStr} /path/to/script.sh
+
+# Or save to file and install:
+# crontab cron_jobs.txt`,
+                
+                nodejs: `// npm install node-cron
+const cron = require('node-cron');
+
+cron.schedule('${cronStr}', () => {
+    console.log('Running scheduled task at', new Date());
+    // Your code here
+});`,
+                
+                python: `# pip install apscheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
+
+scheduler = BlockingScheduler()
+
+@scheduler.scheduled_job('cron', minute='${cronStr.split(' ')[0]}', hour='${cronStr.split(' ')[1]}',
+                         day='${cronStr.split(' ')[2]}', month='${cronStr.split(' ')[3]}',
+                         day_of_week='${cronStr.split(' ')[4]}')
+def scheduled_job():
+    print(f'Running task at {datetime.now()}')
+    # Your code here
+
+scheduler.start()`,
+                
+                java: `// Add Quartz dependency
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
+
+public class CronJob implements Job {
+    public void execute(JobExecutionContext context) {
+        System.out.println("Running at: " + new Date());
+        // Your code here
+    }
+    
+    public static void main(String[] args) throws Exception {
+        JobDetail job = JobBuilder.newJob(CronJob.class).build();
+        CronTrigger trigger = TriggerBuilder.newTrigger()
+            .withSchedule(CronScheduleBuilder.cronSchedule("0 ${cronStr}"))
+            .build();
+        Scheduler scheduler = new StdSchedulerFactory().getScheduler();
+        scheduler.scheduleJob(job, trigger);
+        scheduler.start();
+    }
+}`,
+                
+                docker: `# Docker Compose
+services:
+  cron-job:
+    image: your-image
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    environment:
+      - CRON_SCHEDULE=${cronStr}
+
+# Kubernetes CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scheduled-job
+spec:
+  schedule: "${cronStr}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: job
+            image: your-image
+          restartPolicy: OnFailure`
+            };
+            
+            return templates[language] || '';
+        }
+
+        // Natural Language Parser
+        function naturalToCron(text) {
+            text = text.toLowerCase().trim();
+            
+            const patterns = [
+                { regex: /elke minuut|every minute/i, cron: '* * * * *' },
+                { regex: /elk uur|every hour/i, cron: '0 * * * *' },
+                { regex: /elke dag|every day|daily/i, cron: '0 0 * * *' },
+                { regex: /elke werkdag|weekdays|workdays/i, cron: '0 9 * * 1-5' },
+                { regex: /elk weekend|weekends/i, cron: '0 9 * * 0,6' },
+                { regex: /elke maandag|every monday/i, cron: '0 9 * * 1' },
+                { regex: /om (\d+):(\d+)|at (\d+):(\d+)/i, cron: null }, // Special handling
+                { regex: /om (\d+) uur|at (\d+)/i, cron: null },
+                { regex: /elke (\d+) minuten|every (\d+) minutes/i, cron: null },
+                { regex: /eerste van de maand|first of month/i, cron: '0 0 1 * *' },
+            ];
+            
+            // Check for time pattern
+            let match = text.match(/om (\d+):(\d+)/i) || text.match(/at (\d+):(\d+)/i);
+            if (match) {
+                const hour = match[1] || match[3];
+                const minute = match[2] || match[4];
+                if (text.includes('werkdag') || text.includes('weekday')) {
+                    return `${minute} ${hour} * * 1-5`;
+                }
+                return `${minute} ${hour} * * *`;
+            }
+            
+            match = text.match(/elke (\d+) minuten/i) || text.match(/every (\d+) minutes/i);
+            if (match) {
+                return `*/${match[1]} * * * *`;
+            }
+            
+            for (let pattern of patterns) {
+                if (pattern.regex.test(text) && pattern.cron) {
+                    return pattern.cron;
+                }
+            }
+            
+            return '* * * * *'; // Default
+        }
+
+        // UI Updates
+        function updateUI() {
+            const result = parseCron(
+                fields.minute.value,
+                fields.hour.value,
+                fields.dom.value,
+                fields.month.value,
+                fields.dow.value
+            );
+            
+            // Update cron expression
+            document.getElementById('cron-expr').textContent = result.cronStr || '* * * * *';
+            
+            // Update validation badge
+            const badge = document.getElementById('valid-badge');
+            badge.textContent = result.valid ? '✅' : '❌';
+            
+            // Update human text
+            document.getElementById('human-text').textContent = result.humanText || 'Invalid expression';
+            
+            // Update error
+            const errorEl = document.getElementById('error-text');
+            if (result.error) {
+                errorEl.textContent = result.error;
+                errorEl.classList.remove('hidden');
+            } else {
+                errorEl.classList.add('hidden');
+            }
+            
+            // Update next runs
+            const runsEl = document.getElementById('next-runs');
+            runsEl.innerHTML = '';
+            const tz = document.getElementById('timezone').value;
+            result.nextRuns.forEach((run, i) => {
+                const div = document.createElement('div');
+                div.className = 'p-2 bg-gray-100 dark:bg-gray-700 rounded';
+                div.textContent = `${i+1}. ${run.toLocaleString('nl-NL', { timeZone: tz, dateStyle: 'full', timeStyle: 'short' })}`;
+                runsEl.appendChild(div);
+            });
+            
+            // Update code output
+            updateCodeOutput(result.cronStr);
+            
+            // Update heatmap
+            drawHeatmap(result.nextRuns);
+        }
+
+        function updateCodeOutput(cronStr) {
+            const code = generateCode(cronStr, currentTab);
+            document.querySelector('#code-output code').textContent = code;
+        }
+
+        function drawHeatmap(runs) {
+            const canvas = document.getElementById('canvas-heatmap');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Count runs per day for next 365 days
+            const dayCounts = new Array(365).fill(0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            runs.forEach(run => {
+                const diff = Math.floor((run - today) / (1000 * 60 * 60 * 24));
+                if (diff >= 0 && diff < 365) {
+                    dayCounts[diff]++;
+                }
+            });
+            
+            const maxCount = Math.max(...dayCounts, 1);
+            const cellWidth = width / 365;
+            
+            dayCounts.forEach((count, i) => {
+                const intensity = count / maxCount;
+                const hue = 120 * (1 - intensity); // Green to red
+                ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+                ctx.fillRect(i * cellWidth, 0, cellWidth, height);
+            });
+            
+            // Add grid lines
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 12; i++) {
+                const x = (i * 30.4 * cellWidth);
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+        }
+
+        // Event Listeners
+        Object.values(fields).forEach(field => {
+            field.addEventListener('input', updateUI);
+        });
+
+        ['minute', 'hour', 'dom', 'month', 'dow'].forEach(field => {
+            document.getElementById(`${field}-preset`).addEventListener('change', (e) => {
+                fields[field].value = e.target.value;
+                updateUI();
+            });
+        });
+
+        document.getElementById('timezone').addEventListener('change', () => {
+            currentTimezone = document.getElementById('timezone').value;
+            updateUI();
+        });
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('tab-active');
+                    b.classList.add('tab-inactive');
+                });
+                btn.classList.add('tab-active');
+                btn.classList.remove('tab-inactive');
+                currentTab = btn.dataset.tab;
+                updateUI();
+            });
+        });
+
+        document.getElementById('copy-code').addEventListener('click', () => {
+            const code = document.querySelector('#code-output code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copy-code');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        });
+
+        document.getElementById('download-code').addEventListener('click', () => {
+            const code = document.querySelector('#code-output code').textContent;
+            const extensions = { bash: 'sh', nodejs: 'js', python: 'py', java: 'java', docker: 'yml' };
+            const ext = extensions[currentTab];
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cronjob.${ext}`;
+            a.click();
+        });
+
+        document.getElementById('test-run').addEventListener('click', () => {
+            const result = parseCron(
+                fields.minute.value, fields.hour.value, fields.dom.value,
+                fields.month.value, fields.dow.value
+            );
+            console.log('=== CRON JOB TEST RUN ===');
+            console.log('Expression:', result.cronStr);
+            console.log('Description:', result.humanText);
+            console.log('Next 10 runs:');
+            result.nextRuns.slice(0, 10).forEach((run, i) => {
+                console.log(`  ${i+1}. ${run.toISOString()}`);
+            });
+            alert('Test run logged to console (F12)');
+        });
+
+        document.getElementById('save-favorite').addEventListener('click', () => {
+            const favorites = JSON.parse(localStorage.getItem('cronFavorites') || '[]');
+            const result = parseCron(
+                fields.minute.value, fields.hour.value, fields.dom.value,
+                fields.month.value, fields.dow.value
+            );
+            favorites.push({
+                cron: result.cronStr,
+                description: result.humanText,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('cronFavorites', JSON.stringify(favorites));
+            alert('Saved to favorites!');
+        });
+
+        document.getElementById('parse-natural').addEventListener('click', () => {
+            const text = document.getElementById('natural-input').value;
+            const cron = naturalToCron(text);
+            const parts = cron.split(' ');
+            fields.minute.value = parts[0];
+            fields.hour.value = parts[1];
+            fields.dom.value = parts[2];
+            fields.month.value = parts[3];
+            fields.dow.value = parts[4];
+            updateUI();
+        });
+
+        // Render Presets
+        const presetsGrid = document.getElementById('presets-grid');
+        presets.forEach(preset => {
+            const btn = document.createElement('button');
+            btn.className = 'px-3 py-2 bg-blue-100 dark:bg-blue-900 rounded hover:bg-blue-200 dark:hover:bg-blue-800 text-sm';
+            btn.textContent = preset.name;
+            btn.title = preset.desc;
+            btn.addEventListener('click', () => {
+                const parts = preset.cron.split(' ');
+                fields.minute.value = parts[0];
+                fields.hour.value = parts[1];
+                fields.dom.value = parts[2];
+                fields.month.value = parts[3];
+                fields.dow.value = parts[4];
+                updateUI();
+            });
+            presetsGrid.appendChild(btn);
+        });
+
+        // Initial render
+        updateUI();
+    </script>
+</body>
+</html>
