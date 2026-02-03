@@ -132,10 +132,13 @@
             <div class="lg:col-span-4 space-y-4">
                 <!-- Validation & Description -->
                 <div id="validation" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-start justify-between gap-4">
                         <div>
                             <h3 class="text-lg font-bold mb-2 cursor-help" title="Your generated cron schedule expression">Cron Expression</h3>
-                            <code id="cron-expr" class="text-2xl font-mono bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded block cursor-help" title="Format: minute hour day month day-of-week">* * * * *</code>
+                            <div class="flex items-center gap-2">
+                                <code id="cron-expr" class="text-2xl font-mono bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded cursor-help" title="Format: minute hour day month day-of-week">* * * * *</code>
+                                <button id="copy-cron" class="px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 cursor-help text-sm font-medium" title="Copy cron expression to clipboard">Copy</button>
+                            </div>
                         </div>
                         <div id="valid-badge" class="text-6xl">✅</div>
                     </div>
@@ -691,6 +694,15 @@ spec:
             const code = document.querySelector('#code-output code').textContent;
             navigator.clipboard.writeText(code).then(() => {
                 const btn = document.getElementById('copy-code');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        });
+
+        document.getElementById('copy-cron').addEventListener('click', () => {
+            const cronText = document.getElementById('cron-expr').textContent;
+            navigator.clipboard.writeText(cronText).then(() => {
+                const btn = document.getElementById('copy-cron');
                 btn.textContent = 'Copied!';
                 setTimeout(() => btn.textContent = 'Copy', 2000);
             });
