@@ -1,16 +1,17 @@
 # 🕐 Cronjobber: Advanced Cron Job Code Generator
 
-Version 1.1.0
+Version 1.2.0
 
-A powerful, interactive web-based tool for creating, testing, and visualizing cron job schedules. Generate production-ready code in multiple languages with a beautiful, user-friendly interface. See it in action at **[jordibrw.nl](https://www.jordibrw.nl/projects/cron-generator.html)**.
+A powerful, interactive web-based tool for creating, testing, and visualizing cron job schedules. Generate production-ready code in multiple languages with a clearer, more guided interface. See it in action at **[jordibrw.nl](https://www.jordibrw.nl/projects/cron-generator.html)**.
 
-## What's New in 1.1.0
+## What's New in 1.2.0
 
-- Beginner mode is now the default on first visit.
-- The selected mode is stored in a cookie, so returning users stay on their preferred view.
-- The frequency map is always visible and no longer depends on a hide/show toggle.
-- Page metadata was updated for better SEO, including title, description, canonical URL, robots directives, and social preview tags.
-- `robots.txt` and `sitemap.xml` were added at the site root for search engine discovery.
+- The page was redesigned into a stronger 3-step flow with a clearer hero section and a more prominent live preview panel.
+- Mobile layout was tightened so the stepper, action buttons, and schedule panels are easier to use on smaller screens.
+- Presets are now grouped by usage type, including core schedules, intervals, work schedules, maintenance, and calendar-based jobs.
+- The live summary now functions more like a command center, with the cron expression, validation state, timezone, and next run visible together.
+- Step labels, workflow labels, and preset group titles now support both English and Dutch consistently.
+- The existing mode persistence, natural language parsing, timezone support, and export actions remain available.
 
 ## Features
 
@@ -18,6 +19,7 @@ A powerful, interactive web-based tool for creating, testing, and visualizing cr
 - Simple input fields for all 5 cron fields (minute, hour, day of month, month, day of week)
 - Preset selectors for common schedules
 - Real-time validation with visual feedback
+- Beginner and advanced modes with a guided flow
 
 🌍 **Natural Language Support**
 - Parse Dutch and English descriptions into cron expressions
@@ -35,6 +37,7 @@ A powerful, interactive web-based tool for creating, testing, and visualizing cr
 - 365-day heat map showing execution frequency distribution
 - Frequency map stays visible at all times for faster schedule review
 - Real-time human-readable description of schedules
+- Sticky live summary panel for fast validation while editing
 
 🎛️ **Mode Persistence**
 - Beginner mode is the default entry state
@@ -47,6 +50,7 @@ Including:
 - Business hours, weekend, and off-hours schedules
 - Backup windows and maintenance schedules
 - Common polling intervals
+- Presets grouped by usage type for faster scanning
 
 🔧 **Developer Tools**
 - Copy code to clipboard with one click
@@ -61,7 +65,7 @@ Including:
 ## Quick Start
 
 ### Option 1: Online Version
-Simply open `cron-generator.html` in any modern web browser.
+Simply open `index.html` in any modern web browser.
 
 ### Option 2: GitHub Pages
 Host the file on GitHub Pages for easy sharing and access.
@@ -72,18 +76,19 @@ The repository also includes `robots.txt` and `sitemap.xml` so the public site c
 ## Usage
 
 1. **Build Your Schedule**
-   - Adjust the Cron Fields on the left (minute, hour, day, month, day of week)
-   - Use preset dropdowns for quick selections
-   - Or enter a natural language description and click "Parse"
+  - Start in beginner mode with a natural-language description or one of the quick examples
+  - Switch to advanced mode when you need exact control over each cron field
+  - Use the timezone selector to make sure the schedule is interpreted correctly
 
 2. **Review & Validate**
    - Check the green validation badge (✅ = valid, ❌ = invalid)
    - Read the human-readable description
    - View the next 50 scheduled execution times
    - Check the 365-day frequency heat map
+  - Keep an eye on the sticky live summary panel for quick feedback while editing
 
 3. **Generate Code**
-   - Select your preferred language from the tabs
+  - Select your preferred runtime from the platform picker
    - Review the generated code template
    - Copy to clipboard or download the file
    - Customize as needed for your environment
@@ -196,14 +201,14 @@ spec:
 To enhance or modify the tool:
 
 1. Clone the repository
-2. Open `cron-generator.html` in your browser
+2. Open `index.html` in your browser
 3. Edit the HTML/CSS/JavaScript as needed
 4. Test in real-time in the browser
 
 ### File Structure
 ```
 .
-├── cron-generator.html    # Main application file
+├── index.html             # Main application file
 ├── README.md              # This file
 └── Cronjob.code-workspace # VS Code workspace configuration
 ```
@@ -225,6 +230,17 @@ The 365-day heat map shows:
 
 ### Mode Persistence
 The app starts in beginner mode by default. When a user switches to advanced mode, the choice is stored in a cookie and restored automatically on the next visit.
+
+### Mobile Layout
+The interface uses a tighter mobile layout with stacked actions, a horizontally scrollable stepper, and full-width primary buttons on small screens.
+
+### Preset Grouping
+Presets are grouped into sections so related schedules are easier to find:
+- Most used
+- Intervals
+- Work schedules
+- Maintenance
+- Calendar & intervals
 
 ### Natural Language Parser
 Supports multiple languages:

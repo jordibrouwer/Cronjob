@@ -20,27 +20,57 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background: radial-gradient(circle at 15% 10%, #fef9c3 0%, #f8fafc 45%, #e2e8f0 100%);
+            background:
+                radial-gradient(circle at top left, rgba(250, 204, 21, 0.24), transparent 34%),
+                radial-gradient(circle at 95% 10%, rgba(14, 165, 233, 0.16), transparent 28%),
+                linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image: linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+            background-size: 32px 32px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 78%);
         }
         .card {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(14px);
+        }
+        .hero-panel {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.96));
+            color: #f8fafc;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+        }
+        .section-label {
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #0f172a;
+            opacity: 0.6;
         }
         .step-pill {
             border: 1px solid #cbd5e1;
-            background: #f8fafc;
+            background: rgba(255, 255, 255, 0.95);
             color: #475569;
+            transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+        }
+        .step-pill:hover {
+            transform: translateY(-1px);
         }
         .step-pill.active {
             border-color: #0369a1;
-            background: #e0f2fe;
+            background: linear-gradient(135deg, #e0f2fe, #cffafe);
             color: #0c4a6e;
         }
         .step-pill.done {
             border-color: #15803d;
-            background: #dcfce7;
+            background: linear-gradient(135deg, #dcfce7, #f0fdf4);
             color: #14532d;
         }
         .map-chip {
@@ -52,13 +82,94 @@
             background: #e0f2fe;
             color: #0c4a6e;
         }
+        .workflow-step {
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.94), rgba(255, 255, 255, 0.98));
+        }
+        .workflow-step strong {
+            color: #0f172a;
+        }
+        .mini-chip {
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .preset-group {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(248, 250, 252, 0.8);
+        }
+        .preset-card {
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: linear-gradient(180deg, #eff6ff, #f8fafc);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+        .preset-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+        }
+        .command-card {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 1), rgba(30, 41, 59, 1));
+            color: #e2e8f0;
+        }
         #canvas-heatmap {
             border: 1px solid #cbd5e1;
-            border-radius: 8px;
+            border-radius: 12px;
             background: #f8fafc;
         }
         .fade-in {
             animation: fadeIn 260ms ease-out;
+        }
+        @media (max-width: 640px) {
+            .hero-panel,
+            .card {
+                border-radius: 1.25rem;
+            }
+            .hero-panel {
+                padding: 1rem;
+            }
+            .card {
+                padding: 1rem;
+            }
+            .workflow-step {
+                padding: 0.875rem;
+            }
+            .step-pill {
+                font-size: 0.8125rem;
+            }
+            .stepper-row {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 0.25rem;
+                -webkit-overflow-scrolling: touch;
+            }
+            .stepper-row .step-pill {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+            .hero-actions {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .hero-actions > * {
+                width: 100%;
+            }
+            #cron-expr {
+                font-size: 0.95rem;
+                word-break: break-all;
+            }
+            .toggle-runs-btn,
+            #copy-cron,
+            #show-platforms,
+            #download-code,
+            #test-run,
+            #save-favorite,
+            #to-step-2,
+            #to-step-3 {
+                width: 100%;
+            }
+            #next-runs {
+                max-height: 18rem;
+            }
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(6px); }
@@ -70,91 +181,140 @@
     <div id="toast" class="fixed top-4 right-4 hidden px-4 py-2 rounded-lg bg-slate-900 text-white text-sm z-50"></div>
 
     <div class="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
-        <header class="mb-6 lg:mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 id="app-title" class="text-3xl lg:text-4xl font-black tracking-tight">Cronjobber</h1>
-                    <p id="hero-subtitle" class="text-slate-600 mt-1">Build your schedule in 3 clear steps, validate it instantly, then generate code.</p>
-                    <p id="hero-summary" class="text-slate-700 mt-3 max-w-3xl text-sm sm:text-base">Use this free cron job generator to build crontab expressions, preview schedule runs, and generate production-ready snippets for Bash, Node.js, Python, Java, Docker, and Kubernetes.</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <label for="language-select" id="language-label" class="text-sm font-medium">Language</label>
-                    <select id="language-select" class="px-2 py-2 text-sm border border-slate-300 rounded-lg bg-white">
-                        <option value="en" selected>English</option>
-                        <option value="nl">Nederlands</option>
-                    </select>
-                </div>
-                <div class="flex items-center gap-2">
-                    <a href="https://github.com/jordibrouwer" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors w-fit">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.868-.013-1.703-2.782.603-3.369-1.343-3.369-1.343-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.544 2.914 1.19.092-.926.35-1.557.636-1.914-2.22-.253-4.555-1.112-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.817c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.137 18.194 20 14.44 20 10.017 20 4.484 15.522 0 10 0z" clip-rule="evenodd"></path>
-                        </svg>
-                        GitHub
-                    </a>
-                    <a href="https://www.jordibrw.nl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors w-fit">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3a15.3 15.3 0 0 1 4 9 15.3 15.3 0 0 1-4 9 15.3 15.3 0 0 1-4-9 15.3 15.3 0 0 1 4-9z"></path>
-                        </svg>
-                        jordibrw.nl
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <section class="card rounded-xl p-4 lg:p-5 mb-5 fade-in">
-            <div class="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-                <div>
-                    <h2 id="how-title" class="font-bold text-lg">How the app works</h2>
-                    <p id="how-subtitle" class="text-slate-600 text-sm">1) Choose a schedule, 2) validate the planning, 3) choose your runtime and copy the code.</p>
-                </div>
-                <div class="flex flex-wrap gap-2" id="stepper">
-                    <button class="step-pill active px-3 py-2 rounded-lg text-sm font-semibold" data-step="1">1. Choose schedule</button>
-                    <button class="step-pill px-3 py-2 rounded-lg text-sm font-semibold" data-step="2">2. Validate planning</button>
-                    <button class="step-pill px-3 py-2 rounded-lg text-sm font-semibold" data-step="3">3. Generate code</button>
-                </div>
-            </div>
-        </section>
-
-        <section class="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-5">
-            <aside class="lg:col-span-2 space-y-4">
-                <div class="card rounded-xl p-5 fade-in">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <h3 id="step1-title" class="font-bold text-lg">Step 1: Choose your schedule</h3>
-                            <p id="step1-subtitle" class="text-sm text-slate-600">Start with plain language or configure each cron field manually.</p>
+        <header class="mb-6 lg:mb-8 fade-in">
+            <div class="hero-panel rounded-3xl p-5 lg:p-7">
+                <div class="flex flex-col gap-6">
+                    <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+                        <div class="max-w-3xl">
+                            <p id="hero-kicker" class="section-label text-sky-200/80">Cron schedule designer</p>
+                            <h1 id="app-title" class="text-3xl lg:text-5xl font-black tracking-tight mt-2">Cronjobber</h1>
+                            <p id="hero-subtitle" class="text-slate-200 mt-3 text-lg max-w-2xl">Build your schedule in 3 clear steps, validate it instantly, then generate code.</p>
+                            <p id="hero-summary" class="text-slate-300 mt-4 max-w-3xl text-sm sm:text-base">Use this free cron job generator to build crontab expressions, preview schedule runs, and generate production-ready snippets for Bash, Node.js, Python, Java, Docker, and Kubernetes.</p>
+                            <div class="mt-5 flex flex-wrap gap-2">
+                                <span class="mini-chip rounded-full px-3 py-1 text-xs font-semibold text-slate-100">Fast cron builder</span>
+                                <span class="mini-chip rounded-full px-3 py-1 text-xs font-semibold text-slate-100">Live validation</span>
+                                <span class="mini-chip rounded-full px-3 py-1 text-xs font-semibold text-slate-100">Production snippets</span>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <p id="mode-label" class="text-sm font-medium mb-2">Mode</p>
-                        <div class="inline-flex rounded-lg bg-slate-100 p-1" role="radiogroup" aria-label="Choose mode">
-                            <button id="mode-beginner" class="mode-btn px-3 py-2 rounded-md text-sm font-semibold bg-white shadow" data-mode="beginner">Beginner</button>
-                            <button id="mode-advanced" class="mode-btn px-3 py-2 rounded-md text-sm font-semibold text-slate-600" data-mode="advanced">Advanced</button>
-                        </div>
-                    </div>
-
-                    <div id="beginner-block" class="mt-4 space-y-4">
-                        <div>
-                            <label id="natural-label" class="block text-sm font-medium mb-1">Describe when it should run</label>
-                            <input type="text" id="natural-input" placeholder="e.g. every weekday at 09:00" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                            <button id="parse-natural" class="w-full mt-2 px-3 py-2 rounded-lg bg-sky-700 text-white hover:bg-sky-800">Convert schedule</button>
-                        </div>
-                        <div>
-                            <p id="quick-title" class="text-sm font-medium mb-2">Quick examples</p>
-                            <div class="flex flex-wrap gap-2">
-                                <button id="quick-chip-1" class="quick-chip px-3 py-2 rounded-lg bg-amber-100 hover:bg-amber-200 text-sm" data-cron="0 9 * * 1-5">Every weekday at 09:00</button>
-                                <button id="quick-chip-2" class="quick-chip px-3 py-2 rounded-lg bg-amber-100 hover:bg-amber-200 text-sm" data-cron="0 2 * * *">Every night at 02:00</button>
-                                <button id="quick-chip-3" class="quick-chip px-3 py-2 rounded-lg bg-amber-100 hover:bg-amber-200 text-sm" data-cron="*/15 * * * *">Every 15 minutes</button>
+                        <div class="flex flex-col gap-3 min-w-0 w-full xl:min-w-[240px]">
+                            <div class="rounded-2xl bg-white/10 border border-white/10 p-4 backdrop-blur-sm">
+                                <p id="hero-start-label" class="text-xs uppercase tracking-[0.2em] text-slate-300">Start point</p>
+                                <p id="hero-start-title" class="text-lg font-semibold mt-1">Choose one example, then refine it</p>
+                                <p id="hero-start-body" class="text-sm text-slate-300 mt-1">Beginner mode keeps the first decision simple. Advanced mode opens the full cron matrix.</p>
+                            </div>
+                            <div class="flex flex-col gap-2 sm:flex-row xl:flex-col">
+                                <div class="flex items-center gap-2 rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+                                    <span id="hero-benefit-1" class="text-sm text-slate-100">Validate before export</span>
+                                </div>
+                                <div class="flex items-center gap-2 rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-sky-300"></span>
+                                    <span id="hero-benefit-2" class="text-sm text-slate-100">Timezone-aware previews</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div id="advanced-block" class="mt-4 space-y-4 hidden">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-t border-white/10 pt-4">
+                        <div class="stepper-row flex flex-wrap gap-2" id="stepper">
+                            <button class="step-pill active px-4 py-2.5 rounded-full text-sm font-semibold" data-step="1">1. Choose schedule</button>
+                            <button class="step-pill px-4 py-2.5 rounded-full text-sm font-semibold" data-step="2">2. Validate planning</button>
+                            <button class="step-pill px-4 py-2.5 rounded-full text-sm font-semibold" data-step="3">3. Generate code</button>
+                        </div>
+                        <div class="hero-actions flex items-center gap-2">
+                            <label for="language-select" id="language-label" class="text-sm font-medium text-slate-200">Language</label>
+                            <select id="language-select" class="px-2 py-2 text-sm border border-white/15 rounded-lg bg-slate-950/35 text-white">
+                                <option value="en" selected>English</option>
+                                <option value="nl">Nederlands</option>
+                            </select>
+                            <a href="https://github.com/jordibrouwer" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-slate-900 hover:bg-slate-100 transition-colors w-fit">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.868-.013-1.703-2.782.603-3.369-1.343-3.369-1.343-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.544 2.914 1.19.092-.926.35-1.557.636-1.914-2.22-.253-4.555-1.112-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.817c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.137 18.194 20 14.44 20 10.017 20 4.484 15.522 0 10 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                GitHub
+                            </a>
+                            <a href="https://www.jordibrw.nl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/15 bg-white/10 text-slate-100 hover:bg-white/15 transition-colors w-fit">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3a15.3 15.3 0 0 1 4 9 15.3 15.3 0 0 1-4 9 15.3 15.3 0 0 1-4-9 15.3 15.3 0 0 1 4-9z"></path>
+                                </svg>
+                                jordibrw.nl
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="card rounded-3xl p-4 lg:p-5 mb-5 fade-in">
+            <div class="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-4 xl:items-center">
+                <div>
+                    <p id="workflow-label" class="section-label">Workflow</p>
+                    <h2 id="how-title" class="font-bold text-xl lg:text-2xl mt-1">How the app works</h2>
+                    <p id="how-subtitle" class="text-slate-600 text-sm mt-2 max-w-3xl">1) Choose a schedule, 2) validate the planning, 3) choose your runtime and copy the code.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="workflow-step rounded-2xl p-4">
+                        <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Step 1</p>
+                        <strong id="workflow-step-1" class="block mt-1 text-sm">Choose schedule</strong>
+                        <p class="text-sm text-slate-600 mt-1">Start simple, then refine only if needed.</p>
+                    </div>
+                    <div class="workflow-step rounded-2xl p-4">
+                        <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Step 2</p>
+                        <strong id="workflow-step-2" class="block mt-1 text-sm">Validate planning</strong>
+                        <p class="text-sm text-slate-600 mt-1">See the next runs before you export.</p>
+                    </div>
+                    <div class="workflow-step rounded-2xl p-4">
+                        <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Step 3</p>
+                        <strong id="workflow-step-3" class="block mt-1 text-sm">Generate code</strong>
+                        <p class="text-sm text-slate-600 mt-1">Copy platform-specific code in one click.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+            <aside class="lg:col-span-5 space-y-4">
+                <div class="card rounded-3xl p-5 fade-in">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p id="input-label" class="section-label">Input</p>
+                            <h3 id="step1-title" class="font-bold text-xl mt-1">Step 1: Choose your schedule</h3>
+                            <p id="step1-subtitle" class="text-sm text-slate-600 mt-2 max-w-xl">Start with plain language or configure each cron field manually.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <p id="mode-label" class="text-sm font-medium mb-2">Mode</p>
+                        <div class="inline-flex rounded-full bg-slate-100 p-1 shadow-inner" role="radiogroup" aria-label="Choose mode">
+                            <button id="mode-beginner" class="mode-btn px-4 py-2 rounded-full text-sm font-semibold bg-white shadow" data-mode="beginner">Beginner</button>
+                            <button id="mode-advanced" class="mode-btn px-4 py-2 rounded-full text-sm font-semibold text-slate-600" data-mode="advanced">Advanced</button>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Beginner keeps the interface focused. Advanced unlocks exact cron control.</p>
+                    </div>
+
+                    <div id="beginner-block" class="mt-5 space-y-4">
+                        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                            <label id="natural-label" class="block text-sm font-medium mb-1">Describe when it should run</label>
+                            <input type="text" id="natural-input" placeholder="e.g. every weekday at 09:00" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-white">
+                            <button id="parse-natural" class="w-full mt-3 px-3 py-2.5 rounded-xl bg-sky-700 text-white font-semibold hover:bg-sky-800">Convert schedule</button>
+                        </div>
+                        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                            <p id="quick-title" class="text-sm font-medium mb-3">Quick examples</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button id="quick-chip-1" class="quick-chip px-3 py-2 rounded-full bg-amber-100 hover:bg-amber-200 text-sm" data-cron="0 9 * * 1-5">Every weekday at 09:00</button>
+                                <button id="quick-chip-2" class="quick-chip px-3 py-2 rounded-full bg-amber-100 hover:bg-amber-200 text-sm" data-cron="0 2 * * *">Every night at 02:00</button>
+                                <button id="quick-chip-3" class="quick-chip px-3 py-2 rounded-full bg-amber-100 hover:bg-amber-200 text-sm" data-cron="*/15 * * * *">Every 15 minutes</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="advanced-block" class="mt-5 space-y-4 hidden">
+                        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-sm font-medium mb-1">Minute (0-59)</label>
-                                <input type="text" id="minute" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                                <select id="minute-preset" class="w-full mt-1 px-2 py-2 text-sm border border-slate-300 rounded-lg">
+                                <input type="text" id="minute" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+                                <select id="minute-preset" class="w-full mt-1.5 px-2 py-2 text-sm border border-slate-300 rounded-xl bg-white">
                                     <option value="*">Every minute (*)</option>
                                     <option value="0">At :00</option>
                                     <option value="*/5">Every 5 min (*/5)</option>
@@ -164,8 +324,8 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-1">Hour (0-23)</label>
-                                <input type="text" id="hour" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                                <select id="hour-preset" class="w-full mt-1 px-2 py-2 text-sm border border-slate-300 rounded-lg">
+                                <input type="text" id="hour" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+                                <select id="hour-preset" class="w-full mt-1.5 px-2 py-2 text-sm border border-slate-300 rounded-xl bg-white">
                                     <option value="*">Every hour (*)</option>
                                     <option value="0">Midnight (0)</option>
                                     <option value="9">09:00</option>
@@ -175,8 +335,8 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-1">Day of month (1-31)</label>
-                                <input type="text" id="dom" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                                <select id="dom-preset" class="w-full mt-1 px-2 py-2 text-sm border border-slate-300 rounded-lg">
+                                <input type="text" id="dom" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+                                <select id="dom-preset" class="w-full mt-1.5 px-2 py-2 text-sm border border-slate-300 rounded-xl bg-white">
                                     <option value="*">Every day (*)</option>
                                     <option value="1">First day (1)</option>
                                     <option value="15">Mid-month (15)</option>
@@ -185,8 +345,8 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-1">Month (1-12)</label>
-                                <input type="text" id="month" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                                <select id="month-preset" class="w-full mt-1 px-2 py-2 text-sm border border-slate-300 rounded-lg">
+                                <input type="text" id="month" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+                                <select id="month-preset" class="w-full mt-1.5 px-2 py-2 text-sm border border-slate-300 rounded-xl bg-white">
                                     <option value="*">Every month (*)</option>
                                     <option value="1">January (1)</option>
                                     <option value="6-8">Summer (6-8)</option>
@@ -194,22 +354,23 @@
                                 </select>
                             </div>
                         </div>
-                        <div>
+                        <div class="mt-4">
                             <label class="block text-sm font-medium mb-1">Day of week (0-6, 0=Sun)</label>
-                            <input type="text" id="dow" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                            <select id="dow-preset" class="w-full mt-1 px-2 py-2 text-sm border border-slate-300 rounded-lg">
+                            <input type="text" id="dow" value="*" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+                            <select id="dow-preset" class="w-full mt-1.5 px-2 py-2 text-sm border border-slate-300 rounded-xl bg-white">
                                 <option value="*">Every day (*)</option>
                                 <option value="1-5">Weekdays (1-5)</option>
                                 <option value="0,6">Weekend (0,6)</option>
                                 <option value="1">Monday only</option>
                             </select>
                         </div>
+                        </div>
                         <p class="text-xs text-slate-500">Tip: use * for all values, commas for lists, hyphens for ranges, and / for intervals.</p>
                     </div>
 
-                    <div class="mt-4">
+                    <div class="mt-5 rounded-2xl bg-slate-50 border border-slate-200 p-4">
                         <label id="timezone-label" class="block text-sm font-medium mb-1">Timezone</label>
-                        <select id="timezone" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                        <select id="timezone" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
                             <option value="UTC">UTC</option>
                             <option value="Europe/Amsterdam" selected>Europe/Amsterdam</option>
                             <option value="America/New_York">America/New_York</option>
@@ -218,71 +379,98 @@
                         </select>
                     </div>
 
-                    <button id="to-step-2" class="w-full mt-5 px-4 py-3 rounded-lg bg-sky-700 text-white font-semibold hover:bg-sky-800">Next: validate planning</button>
+                    <button id="to-step-2" class="w-full mt-5 px-4 py-3.5 rounded-xl bg-sky-700 text-white font-semibold hover:bg-sky-800">Next: validate planning</button>
                 </div>
 
-                <div class="card rounded-xl p-5 fade-in">
-                    <h3 id="quick-presets-title" class="font-bold text-lg mb-3">50+ quick presets</h3>
-                    <div id="presets-grid" class="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto"></div>
+                <div class="card rounded-3xl p-5 fade-in">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                            <p id="presetsLabel" class="section-label">Presets</p>
+                            <h3 id="quick-presets-title" class="font-bold text-xl mt-1">50+ quick presets</h3>
+                        </div>
+                    </div>
+                    <div class="preset-group rounded-2xl p-3 mb-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
+                        <span id="preset-group-common" class="px-2 py-1 rounded-full bg-white border border-slate-200">Common</span>
+                        <span id="preset-group-business" class="px-2 py-1 rounded-full bg-white border border-slate-200">Business hours</span>
+                        <span id="preset-group-maintenance" class="px-2 py-1 rounded-full bg-white border border-slate-200">Maintenance</span>
+                        <span id="preset-group-polling" class="px-2 py-1 rounded-full bg-white border border-slate-200">Polling</span>
+                    </div>
+                    <div id="presets-grid" class="space-y-4 max-h-80 overflow-y-auto"></div>
                 </div>
             </aside>
 
-            <main class="lg:col-span-3 space-y-4">
-                <div class="card rounded-xl p-5 lg:sticky lg:top-4 fade-in">
-                    <h3 id="live-title" class="font-bold text-lg">Live summary</h3>
-                    <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <code id="cron-expr" class="text-lg font-mono bg-slate-100 px-3 py-2 rounded-lg">* * * * *</code>
-                        <button id="copy-cron" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-sm">Copy cron</button>
-                    </div>
-
-                    <div id="cron-map" class="flex flex-wrap gap-2 mt-3 text-sm">
-                        <span class="map-chip px-2 py-1 rounded" id="map-minute" title="Minute (0-59)">minute</span>
-                        <span class="map-chip px-2 py-1 rounded" id="map-hour" title="Hour (0-23)">hour</span>
-                        <span class="map-chip px-2 py-1 rounded" id="map-dom" title="Day of month (1-31)">day</span>
-                        <span class="map-chip px-2 py-1 rounded" id="map-month" title="Month (1-12)">month</span>
-                        <span class="map-chip px-2 py-1 rounded" id="map-dow" title="Day of week (0-6)">weekday</span>
-                    </div>
-                    <p id="dom-dow-tip" class="text-xs text-slate-500 mt-2">Note: day-of-month and day-of-week are separate filters. Combine carefully to avoid unexpected schedules.</p>
-
-                    <p id="human-text" class="mt-3 text-slate-700">Every minute</p>
-                    <p id="error-text" class="mt-2 text-sm text-red-700 hidden"></p>
-
-                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-                        <div class="rounded-lg bg-slate-100 px-3 py-2">
-                            <p id="status-label" class="text-slate-500">Status</p>
-                            <p id="status-valid" class="font-semibold">Valid</p>
+            <main class="lg:col-span-7 space-y-4">
+                <div class="card rounded-3xl p-5 lg:sticky lg:top-4 fade-in command-card">
+                    <div class="flex flex-col gap-4">
+                        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+                            <div>
+                                <p class="section-label text-slate-300/70">Live command center</p>
+                                <h3 id="live-title" class="font-bold text-xl mt-1 text-white">Live summary</h3>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button id="copy-cron" class="px-3 py-2 rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 text-sm font-semibold">Copy cron</button>
+                                <button class="toggle-runs-btn px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-sm">Show 50 runs</button>
+                            </div>
                         </div>
-                        <div class="rounded-lg bg-slate-100 px-3 py-2">
-                            <p id="tz-status-label" class="text-slate-500">Timezone</p>
-                            <p id="status-tz" class="font-semibold">Europe/Amsterdam</p>
+
+                        <div class="rounded-2xl bg-white/8 border border-white/10 p-4">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <code id="cron-expr" class="text-lg font-mono bg-white/10 px-3 py-2 rounded-xl">* * * * *</code>
+                                <span class="px-3 py-2 rounded-xl bg-emerald-400/15 text-emerald-200 text-sm font-semibold">Validated output</span>
+                            </div>
+
+                            <div id="cron-map" class="flex flex-wrap gap-2 mt-4 text-sm">
+                                <span class="map-chip px-2 py-1 rounded-full" id="map-minute" title="Minute (0-59)">minute</span>
+                                <span class="map-chip px-2 py-1 rounded-full" id="map-hour" title="Hour (0-23)">hour</span>
+                                <span class="map-chip px-2 py-1 rounded-full" id="map-dom" title="Day of month (1-31)">day</span>
+                                <span class="map-chip px-2 py-1 rounded-full" id="map-month" title="Month (1-12)">month</span>
+                                <span class="map-chip px-2 py-1 rounded-full" id="map-dow" title="Day of week (0-6)">weekday</span>
+                            </div>
+                            <p id="dom-dow-tip" class="text-xs text-slate-300 mt-3">Note: day-of-month and day-of-week are separate filters. Combine carefully to avoid unexpected schedules.</p>
+
+                            <p id="human-text" class="mt-4 text-slate-100 text-base">Every minute</p>
+                            <p id="error-text" class="mt-2 text-sm text-red-200 hidden"></p>
                         </div>
-                        <div class="rounded-lg bg-slate-100 px-3 py-2">
-                            <p id="next-run-label" class="text-slate-500">Next run</p>
-                            <p id="status-next" class="font-semibold">-</p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                            <div class="rounded-2xl bg-white/8 border border-white/10 px-3 py-3">
+                                <p id="status-label" class="text-slate-300">Status</p>
+                                <p id="status-valid" class="font-semibold text-emerald-300">Valid</p>
+                            </div>
+                            <div class="rounded-2xl bg-white/8 border border-white/10 px-3 py-3">
+                                <p id="tz-status-label" class="text-slate-300">Timezone</p>
+                                <p id="status-tz" class="font-semibold text-slate-100">Europe/Amsterdam</p>
+                            </div>
+                            <div class="rounded-2xl bg-white/8 border border-white/10 px-3 py-3">
+                                <p id="next-run-label" class="text-slate-300">Next run</p>
+                                <p id="status-next" class="font-semibold text-slate-100">-</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <section id="step-2-panel" class="card rounded-xl p-5 fade-in">
+                <section id="step-2-panel" class="card rounded-3xl p-5 fade-in">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
-                            <h3 id="step2-title" class="font-bold text-lg">Step 2: Validate planning</h3>
-                            <p id="step2-subtitle" class="text-sm text-slate-600">Review the upcoming run moments before generating code.</p>
+                            <p id="review-label" class="section-label">Review</p>
+                            <h3 id="step2-title" class="font-bold text-xl mt-1">Step 2: Validate planning</h3>
+                            <p id="step2-subtitle" class="text-sm text-slate-600 mt-2">Review the upcoming run moments before generating code.</p>
                         </div>
-                        <button id="toggle-runs" class="px-3 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm">Show 50 runs</button>
+                        <button class="toggle-runs-btn px-3 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-sm">Show 50 runs</button>
                     </div>
                     <div id="next-runs" class="mt-4 max-h-72 overflow-y-auto space-y-2"></div>
-                    <button id="to-step-3" class="w-full mt-5 px-4 py-3 rounded-lg bg-sky-700 text-white font-semibold hover:bg-sky-800">Next: generate code</button>
+                    <button id="to-step-3" class="w-full mt-5 px-4 py-3.5 rounded-xl bg-sky-700 text-white font-semibold hover:bg-sky-800">Next: generate code</button>
                 </section>
 
-                <section id="step-3-panel" class="card rounded-xl p-5 hidden fade-in">
-                    <h3 id="step3-title" class="font-bold text-lg">Step 3: Generate code</h3>
-                    <p id="step3-subtitle" class="text-sm text-slate-600 mt-1">Choose where this schedule runs, then copy your snippet.</p>
+                <section id="step-3-panel" class="card rounded-3xl p-5 hidden fade-in">
+                    <p id="export-label" class="section-label">Export</p>
+                    <h3 id="step3-title" class="font-bold text-xl mt-1">Step 3: Generate code</h3>
+                    <p id="step3-subtitle" class="text-sm text-slate-600 mt-2">Choose where this schedule runs, then copy your snippet.</p>
 
-                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                             <label id="platform-label" class="block text-sm font-medium mb-1">Where will this run?</label>
-                            <select id="platform-select" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                            <select id="platform-select" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
                                 <option value="bash">Linux crontab (Bash)</option>
                                 <option value="nodejs">Node.js</option>
                                 <option value="python">Python</option>
@@ -296,21 +484,22 @@
                     </div>
 
                     <div class="relative mt-4">
-                        <pre id="code-output" class="bg-slate-950 text-slate-100 p-4 rounded-lg overflow-x-auto text-sm"><code></code></pre>
-                        <button id="copy-code" class="absolute top-2 right-2 px-3 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm">Copy code</button>
+                        <pre id="code-output" class="bg-slate-950 text-slate-100 p-4 rounded-2xl overflow-x-auto text-sm"><code></code></pre>
+                        <button id="copy-code" class="absolute top-2 right-2 px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm">Copy code</button>
                     </div>
 
                     <div class="flex flex-wrap gap-2 mt-4">
-                        <button id="download-code" class="px-4 py-2 bg-sky-700 text-white rounded-lg hover:bg-sky-800">Download</button>
-                        <button id="test-run" class="px-4 py-2 bg-violet-700 text-white rounded-lg hover:bg-violet-800">Test in console</button>
-                        <button id="save-favorite" class="px-4 py-2 bg-amber-500 text-slate-900 rounded-lg hover:bg-amber-400">Save favorite</button>
+                        <button id="download-code" class="px-4 py-2.5 bg-sky-700 text-white rounded-xl hover:bg-sky-800">Download</button>
+                        <button id="test-run" class="px-4 py-2.5 bg-violet-700 text-white rounded-xl hover:bg-violet-800">Test in console</button>
+                        <button id="save-favorite" class="px-4 py-2.5 bg-amber-500 text-slate-900 rounded-xl hover:bg-amber-400">Save favorite</button>
                     </div>
                 </section>
 
                 <section id="advanced-panels" class="space-y-4 fade-in">
-                    <div class="card rounded-xl p-5">
-                        <h3 id="heatmap-title" class="font-bold text-lg">Frequency map (365 days)</h3>
-                        <p id="heatmap-subtitle" class="text-sm text-slate-600 mb-3">Green = fewer runs, red = more runs on that day.</p>
+                    <div class="card rounded-3xl p-5">
+                        <p id="coverage-label" class="section-label">Coverage</p>
+                        <h3 id="heatmap-title" class="font-bold text-xl mt-1">Frequency map (365 days)</h3>
+                        <p id="heatmap-subtitle" class="text-sm text-slate-600 mb-3 mt-2">Green = fewer runs, red = more runs on that day.</p>
                         <canvas id="canvas-heatmap" width="860" height="120" class="w-full"></canvas>
                     </div>
                 </section>
@@ -332,9 +521,35 @@
                 pageTitle: 'Cronjobber - Cron Job Generator & Cron Expression Builder',
                 heroSubtitle: 'Build your schedule in 3 clear steps, validate it instantly, then generate code.',
                 heroSummary: 'Use this free cron job generator to build crontab expressions, preview schedule runs, and generate production-ready snippets for Bash, Node.js, Python, Java, Docker, and Kubernetes.',
+                heroKicker: 'Cron schedule designer',
+                heroStartLabel: 'Start point',
+                heroStartTitle: 'Choose one example, then refine it',
+                heroStartBody: 'Beginner mode keeps the first decision simple. Advanced mode opens the full cron matrix.',
+                heroBenefit1: 'Validate before export',
+                heroBenefit2: 'Timezone-aware previews',
                 languageLabel: 'Language',
                 howTitle: 'How the app works',
                 howSubtitle: '1) Choose a schedule, 2) validate the planning, 3) choose your runtime and copy the code.',
+                workflowLabel: 'Workflow',
+                inputLabel: 'Input',
+                reviewLabel: 'Review',
+                exportLabel: 'Export',
+                coverageLabel: 'Coverage',
+                presetsLabel: 'Presets',
+                presetGroupCommon: 'Common',
+                presetGroupBusiness: 'Business hours',
+                presetGroupMaintenance: 'Maintenance',
+                presetGroupPolling: 'Polling',
+                presetSectionCore: 'Most used',
+                presetSectionInterval: 'Intervals',
+                presetSectionWork: 'Work schedules',
+                presetSectionMaintenance: 'Maintenance',
+                presetSectionCalendar: 'Calendar & intervals',
+                presetSubtitleCore: 'Daily and frequent schedules',
+                presetSubtitleInterval: 'Minute and hour intervals',
+                presetSubtitleWork: 'Business-hour and weekday patterns',
+                presetSubtitleMaintenance: 'Backups, cleanup, and scans',
+                presetSubtitleCalendar: 'Longer cycles and date-based jobs',
                 step1: '1. Choose schedule',
                 step2: '2. Validate planning',
                 step3: '3. Generate code',
@@ -428,9 +643,35 @@
                 pageTitle: 'Cronplanner - Cronjob generator en cron-expressie bouwer',
                 heroSubtitle: 'Bouw je planning in 3 duidelijke stappen, controleer meteen en genereer daarna direct code.',
                 heroSummary: 'Gebruik deze gratis cronjob generator om crontab-expressies te bouwen, geplande momenten te bekijken en productieklare snippets te genereren voor Bash, Node.js, Python, Java, Docker en Kubernetes.',
+                heroKicker: 'Ontwerper voor cron-planningen',
+                heroStartLabel: 'Startpunt',
+                heroStartTitle: 'Kies eerst een voorbeeld en verfijn daarna',
+                heroStartBody: 'Beginner houdt de eerste keuze eenvoudig. Advanced opent de volledige cron-matrix.',
+                heroBenefit1: 'Valideer vóór export',
+                heroBenefit2: 'Tijdzonebewuste previews',
                 languageLabel: 'Taal',
                 howTitle: 'Zo werkt de app',
                 howSubtitle: '1) Kies een schema, 2) controleer of de planning klopt, 3) kies waar je het draait en kopieer je code.',
+                workflowLabel: 'Workflow',
+                inputLabel: 'Invoer',
+                reviewLabel: 'Controle',
+                exportLabel: 'Export',
+                coverageLabel: 'Dekking',
+                presetsLabel: 'Presets',
+                presetGroupCommon: 'Algemeen',
+                presetGroupBusiness: 'Kantooruren',
+                presetGroupMaintenance: 'Onderhoud',
+                presetGroupPolling: 'Polling',
+                presetSectionCore: 'Meest gebruikt',
+                presetSectionInterval: 'Intervallen',
+                presetSectionWork: 'Werkschema\'s',
+                presetSectionMaintenance: 'Onderhoud',
+                presetSectionCalendar: 'Kalender & intervallen',
+                presetSubtitleCore: 'Dagelijkse en frequente schema\'s',
+                presetSubtitleInterval: 'Minuut- en uurintervallen',
+                presetSubtitleWork: 'Patronen voor werkdagen en kantooruren',
+                presetSubtitleMaintenance: 'Back-ups, opschoning en scans',
+                presetSubtitleCalendar: 'Langere cycli en datumgebonden jobs',
                 step1: '1. Kies schema',
                 step2: '2. Controleer planning',
                 step3: '3. Genereer code',
@@ -641,15 +882,23 @@
             document.documentElement.lang = currentLanguage;
             document.title = t('pageTitle');
             updateSeoMeta();
+            document.getElementById('hero-kicker').textContent = t('heroKicker');
             document.getElementById('app-title').textContent = t('appTitle');
             document.getElementById('hero-subtitle').textContent = t('heroSubtitle');
             document.getElementById('hero-summary').textContent = t('heroSummary');
+            document.getElementById('hero-start-label').textContent = t('heroStartLabel');
+            document.getElementById('hero-start-title').textContent = t('heroStartTitle');
+            document.getElementById('hero-start-body').textContent = t('heroStartBody');
+            document.getElementById('hero-benefit-1').textContent = t('heroBenefit1');
+            document.getElementById('hero-benefit-2').textContent = t('heroBenefit2');
             document.getElementById('language-label').textContent = t('languageLabel');
+            document.getElementById('workflow-label').textContent = t('workflowLabel');
             document.getElementById('how-title').textContent = t('howTitle');
             document.getElementById('how-subtitle').textContent = t('howSubtitle');
             document.querySelector('#stepper [data-step="1"]').textContent = t('step1');
             document.querySelector('#stepper [data-step="2"]').textContent = t('step2');
             document.querySelector('#stepper [data-step="3"]').textContent = t('step3');
+            document.getElementById('input-label').textContent = t('inputLabel');
             document.getElementById('step1-title').textContent = t('step1Title');
             document.getElementById('step1-subtitle').textContent = t('step1Subtitle');
             document.getElementById('mode-label').textContent = t('modeLabel');
@@ -665,6 +914,7 @@
             document.getElementById('quick-chip-3').textContent = t('quick3');
             document.getElementById('timezone-label').textContent = t('timezoneLabel');
             document.getElementById('to-step-2').textContent = t('toStep2');
+            document.getElementById('presetsLabel').textContent = t('presetsLabel');
             document.getElementById('live-title').textContent = t('liveTitle');
             document.getElementById('copy-cron').textContent = t('copyCron');
             document.getElementById('map-minute').textContent = t('mapMinute');
@@ -673,12 +923,16 @@
             document.getElementById('map-month').textContent = t('mapMonth');
             document.getElementById('map-dow').textContent = t('mapWeekday');
             document.getElementById('dom-dow-tip').textContent = t('domDowTip');
+            document.getElementById('review-label').textContent = t('reviewLabel');
             document.getElementById('status-label').textContent = t('statusLabel');
             document.getElementById('tz-status-label').textContent = t('tzStatusLabel');
             document.getElementById('next-run-label').textContent = t('nextRunLabel');
             document.getElementById('step2-title').textContent = t('step2Title');
             document.getElementById('step2-subtitle').textContent = t('step2Subtitle');
-            document.getElementById('toggle-runs').textContent = showAllRuns ? t('show3') : t('show50');
+            document.querySelectorAll('.toggle-runs-btn').forEach(btn => {
+                btn.textContent = showAllRuns ? t('show3') : t('show50');
+            });
+            document.getElementById('export-label').textContent = t('exportLabel');
             document.getElementById('to-step-3').textContent = t('toStep3');
             document.getElementById('step3-title').textContent = t('step3Title');
             document.getElementById('step3-subtitle').textContent = t('step3Subtitle');
@@ -687,17 +941,101 @@
             document.getElementById('copy-code').textContent = t('copyCode');
             document.getElementById('test-run').textContent = t('testConsole');
             document.getElementById('save-favorite').textContent = t('saveFavorite');
+            document.getElementById('coverage-label').textContent = t('coverageLabel');
             document.getElementById('heatmap-title').textContent = t('heatmapTitle');
             document.getElementById('heatmap-subtitle').textContent = t('heatmapSubtitle');
-            document.getElementById('mode-label').textContent = t('modeLabel');
-            document.getElementById('mode-beginner').textContent = t('modeBeginner');
-            document.getElementById('mode-advanced').textContent = t('modeAdvanced');
+            document.getElementById('preset-group-common').textContent = t('presetGroupCommon');
+            document.getElementById('preset-group-business').textContent = t('presetGroupBusiness');
+            document.getElementById('preset-group-maintenance').textContent = t('presetGroupMaintenance');
+            document.getElementById('preset-group-polling').textContent = t('presetGroupPolling');
+            renderPresetGroups();
             applyMode(currentMode, false);
             updateUI();
         }
 
         function fieldLabel(key) {
             return t(`${key}Label`);
+        }
+
+        function getPresetGroup(preset) {
+            const text = `${preset.name} ${preset.desc} ${preset.cron}`.toLowerCase();
+
+            if (/backup|cleanup|rotation|security|maintenance|night backup|maintenance window/.test(text)) {
+                return 'maintenance';
+            }
+
+            if (/every minute|every \d+ minutes|hourly|every \d+ hours|fast poll|med poll|slow poll|hourly check|debug job|test job/.test(text)) {
+                return 'interval';
+            }
+
+            if (/weekday|weekdays|work|office|business|lunch|peak hours|off hours|week start|week end/.test(text)) {
+                return 'work';
+            }
+
+            if (/month|quarter|year|reports|first of month|mid month|bi-weekly|summer months|winter months|every other day/.test(text)) {
+                return 'calendar';
+            }
+
+            return 'core';
+        }
+
+        function renderPresetGroups() {
+            const presetsGrid = document.getElementById('presets-grid');
+            const groups = {
+                core: [],
+                interval: [],
+                work: [],
+                maintenance: [],
+                calendar: []
+            };
+
+            presets.forEach(preset => {
+                groups[getPresetGroup(preset)].push(preset);
+            });
+
+            const groupMeta = [
+                { key: 'core', title: t('presetSectionCore'), subtitle: t('presetSubtitleCore') },
+                { key: 'interval', title: t('presetSectionInterval'), subtitle: t('presetSubtitleInterval') },
+                { key: 'work', title: t('presetSectionWork'), subtitle: t('presetSubtitleWork') },
+                { key: 'maintenance', title: t('presetSectionMaintenance'), subtitle: t('presetSubtitleMaintenance') },
+                { key: 'calendar', title: t('presetSectionCalendar'), subtitle: t('presetSubtitleCalendar') }
+            ];
+
+            presetsGrid.innerHTML = '';
+
+            groupMeta.forEach(group => {
+                const items = groups[group.key];
+                if (!items.length) return;
+
+                const section = document.createElement('section');
+                section.className = 'space-y-2';
+                section.innerHTML = `
+                    <div class="flex items-end justify-between gap-3">
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-900">${group.title}</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">${group.subtitle}</p>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-500">${items.length}</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+                `;
+
+                const grid = section.querySelector('div.grid');
+                items.forEach(preset => {
+                    const button = document.createElement('button');
+                    button.className = 'preset-card rounded-2xl p-3 text-left';
+                    button.innerHTML = `<span class="block font-semibold text-slate-900">${preset.name}</span><span class="block mt-1 text-xs text-slate-600">${preset.desc}</span>`;
+                    button.title = preset.desc;
+                    button.addEventListener('click', () => {
+                        setCron(preset.cron);
+                        setStep(2);
+                        showToast(t('presetLoaded', { name: preset.name }));
+                    });
+                    grid.appendChild(button);
+                });
+
+                presetsGrid.appendChild(section);
+            });
         }
 
         function setStep(step) {
@@ -1132,11 +1470,13 @@
             updateUI();
         });
 
-        document.getElementById('toggle-runs').addEventListener('click', () => {
+        document.querySelectorAll('.toggle-runs-btn').forEach(btn => btn.addEventListener('click', () => {
             showAllRuns = !showAllRuns;
-            document.getElementById('toggle-runs').textContent = showAllRuns ? t('show3') : t('show50');
+            document.querySelectorAll('.toggle-runs-btn').forEach(toggleBtn => {
+                toggleBtn.textContent = showAllRuns ? t('show3') : t('show50');
+            });
             updateUI();
-        });
+        }));
 
         document.getElementById('to-step-2').addEventListener('click', () => {
             setStep(2);
@@ -1235,19 +1575,7 @@
             applyLanguage();
         });
 
-        const presetsGrid = document.getElementById('presets-grid');
-        presets.forEach(preset => {
-            const button = document.createElement('button');
-            button.className = 'px-3 py-2 rounded-lg bg-sky-100 hover:bg-sky-200 text-left text-sm';
-            button.textContent = preset.name;
-            button.title = preset.desc;
-            button.addEventListener('click', () => {
-                setCron(preset.cron);
-                setStep(2);
-                showToast(t('presetLoaded', { name: preset.name }));
-            });
-            presetsGrid.appendChild(button);
-        });
+        renderPresetGroups();
 
         currentLanguage = 'en';
         document.getElementById('language-select').value = currentLanguage;
